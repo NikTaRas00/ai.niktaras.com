@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NikTaRas AI</title>
+<meta property="og:title" content="NikTaRas AI">
+<meta property="og:description" content="Choose a NikTaRas AI model.">
+<meta property="og:url" content="https://ai.niktaras.com/">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #14161c;
+    --ink-soft: #4a4f5c;
+    --paper: #e8e4dc;
+    --paper-warm: #f2efe9;
+    --rule: #c9c3b8;
+    --mark: #2f5d50;
+    --serif: "Newsreader", Georgia, serif;
+    --mono: "IBM Plex Mono", ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: 18px;
+    line-height: 1.5;
+  }
+  .frame {
+    max-width: 720px;
+    min-height: 100vh;
+    margin: 0 auto;
+    padding: 0 24px 48px;
+    background: var(--paper-warm);
+    border-left: 1px solid var(--rule);
+    border-right: 1px solid var(--rule);
+  }
+  header { padding: 40px 0 20px; border-bottom: 1px solid var(--rule); }
+  h1 { margin: 0; font-weight: 500; font-size: 2rem; letter-spacing: 0.01em; }
+  .meta {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-soft);
+  }
+  .lede { color: var(--ink-soft); margin: 12px 0 0; }
+  h2 { margin: 32px 0 12px; }
+  .models { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
+  .model {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 18px 20px;
+    border: 1px solid var(--rule);
+    background: var(--paper-warm);
+  }
+  .model:hover { border-color: var(--ink); }
+  .model h3 { margin: 0; font-weight: 500; font-size: 1.25rem; }
+  .model p { margin: 4px 0 0; color: var(--ink-soft); font-size: 0.95rem; }
+  .model[aria-disabled="true"] { opacity: 0.55; }
+  .model[aria-disabled="true"]:hover { border-color: var(--rule); }
+  .pick {
+    flex: none;
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 10px 18px;
+    background: var(--ink);
+    color: var(--paper-warm);
+    border: 1px solid var(--ink);
+    cursor: pointer;
+    text-decoration: none;
+  }
+  .pick:hover { background: var(--mark); border-color: var(--mark); }
+  .pick[disabled] { background: transparent; color: var(--ink-soft); border-color: var(--rule); cursor: not-allowed; }
+  :focus-visible { outline: 2px solid var(--mark); outline-offset: 2px; }
+  @media (max-width: 480px) {
+    .model { flex-direction: column; align-items: flex-start; }
+    .pick { width: 100%; text-align: center; }
+  }
+</style>
+</head>
+<body>
+<div class="frame">
+  <header>
+    <span class="meta">NikTaRas AI</span>
+    <h1>Choose a model</h1>
+    <p class="lede">Pick the model you want to chat with.</p>
+  </header>
+
+  <ul class="models" id="models"></ul>
+</div>
+
+<script>
+(function () {
+  // Add new models here; each entry becomes a picker card.
+  var MODELS = [
+    {
+      id: "NKT-1",
+      name: "NKT-1",
+      description: "General-purpose chat with optional live web search and saved chats.",
+      url: "/models/NKT-1/index.html"
+    }
+  ];
+
+  var list = document.getElementById("models");
+  MODELS.forEach(function (m) {
+    var li = document.createElement("li");
+    li.className = "model";
+
+    var text = document.createElement("div");
+    var h3 = document.createElement("h3");
+    h3.textContent = m.name;
+    var p = document.createElement("p");
+    p.textContent = m.description;
+    text.appendChild(h3);
+    text.appendChild(p);
+
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "pick";
+    btn.textContent = m.name;
+    btn.setAttribute("aria-label", "Open " + m.name);
+    btn.addEventListener("click", function () { window.location.href = m.url; });
+
+    li.appendChild(text);
+    li.appendChild(btn);
+    list.appendChild(li);
+  });
+})();
+</script>
+</body>
+</html>

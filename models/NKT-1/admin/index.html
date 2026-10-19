@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>NKT-1 Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #14161c;
+    --ink-soft: #4a4f5c;
+    --paper: #e8e4dc;
+    --paper-warm: #f2efe9;
+    --rule: #c9c3b8;
+    --mark: #2f5d50;
+    --alert: #8c3b2e;
+    --serif: "Newsreader", Georgia, serif;
+    --mono: "IBM Plex Mono", ui-monospace, monospace;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: 16px;
+    line-height: 1.5;
+    min-height: 100vh;
+  }
+
+  .wrap { max-width: 900px; margin: 0 auto; padding: 32px 24px 64px; }
+
+  h1 { margin: 0; font-size: 22px; font-weight: 500; }
+  h2 { margin: 0 0 4px; font-size: 18px; font-weight: 500; }
+
+  .topbar { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+
+  .meta {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+
+  .textbtn {
+    position: relative;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    background: none;
+    border: none;
+    border-bottom: 1px solid var(--rule);
+    color: var(--ink-soft);
+    padding: 2px 0;
+    cursor: pointer;
+  }
+  .textbtn:hover { color: var(--ink); border-color: var(--ink); }
+  .textbtn:active { opacity: 0.6; }
+
+  button[type="submit"], .btn {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: var(--ink);
+    color: var(--paper-warm);
+    border: none;
+    padding: 10px 18px;
+    min-height: 40px;
+    cursor: pointer;
+  }
+  button[type="submit"]:hover, .btn:hover { opacity: 0.85; }
+  button:disabled { opacity: 0.4; cursor: default; }
+
+  .tabs { display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 1px solid var(--rule); }
+  .tab {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    background: none;
+    border: none;
+    padding: 10px 4px;
+    margin-bottom: -1px;
+    border-bottom: 2px solid transparent;
+    color: var(--ink-soft);
+    cursor: pointer;
+  }
+  .tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--mark); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid color-mix(in srgb, var(--rule) 60%, transparent); vertical-align: top; }
+  th { font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); font-weight: 500; }
+  tr:last-child td { border-bottom: none; }
+  .num { font-family: var(--mono); font-size: 13px; }
+
+  .empty { color: var(--ink-soft); font-style: italic; padding: 24px 0; }
+  .error { color: var(--alert); }
+
+  .field { margin: 14px 0; }
+  .field label {
+    display: block;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 4px;
+  }
+  .field input {
+    font-family: var(--serif);
+    font-size: 16px;
+    color: var(--ink);
+    background: none;
+    border: none;
+    border-bottom: 1px solid var(--rule);
+    padding: 6px 0;
+    width: 100%;
+    max-width: 240px;
+  }
+  .field input:focus { outline: none; border-color: var(--ink); }
+  .inline-form { display: flex; align-items: flex-end; gap: 12px; }
+
+  .gate { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 24px; }
+  .gate-card { width: 100%; max-width: 340px; }
+  .gate-card .field input { max-width: none; }
+
+  .transcript { border: 1px solid var(--rule); background: var(--paper-warm); padding: 4px 16px; margin-top: 12px; }
+  .turn { display: grid; grid-template-columns: 68px 1fr; gap: 16px; padding: 14px 0; border-bottom: 1px solid color-mix(in srgb, var(--rule) 50%, transparent); }
+  .turn:last-child { border-bottom: none; }
+  .turn .who { font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); padding-top: 2px; }
+  .turn[data-role="model"] .who { color: var(--mark); }
+  .turn .body { white-space: pre-wrap; overflow-wrap: anywhere; }
+
+  [hidden] { display: none !important; }
+
+  @media (max-width: 600px) {
+    table, thead, tbody, th, td, tr { display: block; }
+    thead { display: none; }
+    tr { border-bottom: 1px solid var(--rule); padding: 10px 0; }
+    td { border: none; padding: 4px 0; }
+    td::before { content: attr(data-label) ": "; font-family: var(--mono); font-size: 10px; text-transform: uppercase; color: var(--ink-soft); }
+  }
+</style>
+</head>
+<body>
+
+<div class="gate" id="gate">
+  <div class="gate-card">
+    <h1 style="margin-bottom:18px">NKT-1 Admin</h1>
+    <form id="gateForm">
+      <div class="field">
+        <label for="gateCode">Access Code</label>
+        <input type="password" id="gateCode" autocomplete="off" required autofocus>
+      </div>
+      <button type="submit" id="gateSubmit">Enter</button>
+    </form>
+    <p class="error" id="gateError" hidden></p>
+  </div>
+</div>
+
+<div class="wrap" id="app" hidden>
+  <div class="topbar">
+    <h1>NKT-1 Admin</h1>
+    <button type="button" class="textbtn" id="logoutBtn">Log Out</button>
+  </div>
+
+  <div class="tabs">
+    <button type="button" class="tab" id="tabAccounts" aria-selected="true">Accounts</button>
+    <button type="button" class="tab" id="tabAnon" aria-selected="false">Anonymous Chats</button>
+  </div>
+
+  <div id="view"></div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var gate = document.getElementById("gate");
+  var gateForm = document.getElementById("gateForm");
+  var gateCode = document.getElementById("gateCode");
+  var gateSubmit = document.getElementById("gateSubmit");
+  var gateError = document.getElementById("gateError");
+
+  var app = document.getElementById("app");
+  var logoutBtn = document.getElementById("logoutBtn");
+  var tabAccounts = document.getElementById("tabAccounts");
+  var tabAnon = document.getElementById("tabAnon");
+  var view = document.getElementById("view");
+
+  var csrfToken = "";
+  var currentTab = "accounts";
+
+  function el(tag, props, children) {
+    var node = document.createElement(tag);
+    if (props) {
+      Object.keys(props).forEach(function (k) {
+        if (k === "text") node.textContent = props[k];
+        else if (k === "class") node.className = props[k];
+        else node.setAttribute(k, props[k]);
+      });
+    }
+    (children || []).forEach(function (c) { node.appendChild(c); });
+    return node;
+  }
+
+  // Shown as-is (server time, whatever timezone MySQL is configured with) --
+  // not converted to the viewer's local time, since we don't know the DB's
+  // actual timezone and a wrong guess would be worse than an unconverted
+  // timestamp.
+  function fmtDate(s) {
+    return s || "—";
+  }
+
+  async function api(url, options) {
+    options = options || {};
+    options.credentials = "same-origin";
+    options.headers = options.headers || {};
+    if (options.method && options.method !== "GET") {
+      options.headers["X-CSRF-Token"] = csrfToken;
+    }
+    var response = await fetch(url, options);
+    var data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.error || "Request failed.");
+    }
+    return data;
+  }
+
+  async function refreshMe() {
+    var data = await fetch("../api/admin_me.php", { credentials: "same-origin" }).then(function (r) { return r.json(); });
+    csrfToken = data.csrfToken || "";
+    return !!data.isAdmin;
+  }
+
+  async function showApp() {
+    gate.hidden = true;
+    app.hidden = false;
+    await loadAccounts();
+  }
+
+  function showGate() {
+    app.hidden = true;
+    gate.hidden = false;
+    gateCode.value = "";
+    gateCode.focus();
+  }
+
+  gateForm.addEventListener("submit", async function (e) {
+    e.preventDefault();
+    gateError.hidden = true;
+    gateSubmit.disabled = true;
+    try {
+      await api("../api/admin_login.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: gateCode.value })
+      });
+      await refreshMe();
+      await showApp();
+    } catch (err) {
+      gateError.textContent = err.message;
+      gateError.hidden = false;
+    } finally {
+      gateSubmit.disabled = false;
+    }
+  });
+
+  logoutBtn.addEventListener("click", async function () {
+    try {
+      await api("../api/admin_logout.php", { method: "POST" });
+    } catch (err) {
+      // Fall through -- show the gate regardless.
+    }
+    await refreshMe();
+    showGate();
+  });
+
+  function setTab(tab) {
+    currentTab = tab;
+    tabAccounts.setAttribute("aria-selected", String(tab === "accounts"));
+    tabAnon.setAttribute("aria-selected", String(tab === "anon"));
+    if (tab === "accounts") loadAccounts();
+    else loadAnonChats();
+  }
+  tabAccounts.addEventListener("click", function () { setTab("accounts"); });
+  tabAnon.addEventListener("click", function () { setTab("anon"); });
+
+  function renderTranscript(messages) {
+    var wrap = el("div", { class: "transcript" });
+    (messages || []).forEach(function (m) {
+      var role = m.role === "model" ? "model" : "user";
+      wrap.appendChild(el("div", { class: "turn", "data-role": role }, [
+        el("div", { class: "who", text: role === "model" ? "NKT-1" : "User" }),
+        el("div", { class: "body", text: m.text || "" })
+      ]));
+    });
+    if (!messages || !messages.length) {
+      wrap.appendChild(el("p", { class: "empty", text: "No messages." }));
+    }
+    return wrap;
+  }
+
+  // ---- Accounts tab ----
+
+  async function loadAccounts() {
+    view.innerHTML = "";
+    view.appendChild(el("p", { class: "empty", text: "Loading…" }));
+    try {
+      var users = await api("../api/admin_users.php");
+      renderAccountsList(users);
+    } catch (err) {
+      view.innerHTML = "";
+      view.appendChild(el("p", { class: "error", text: err.message }));
+    }
+  }
+
+  function renderAccountsList(users) {
+    view.innerHTML = "";
+    if (!users.length) {
+      view.appendChild(el("p", { class: "empty", text: "No accounts yet." }));
+      return;
+    }
+
+    var table = el("table", {}, [
+      el("thead", {}, [
+        el("tr", {}, [
+          el("th", { text: "Email" }),
+          el("th", { text: "Verified" }),
+          el("th", { text: "Rate Limit" }),
+          el("th", { text: "Used" }),
+          el("th", { text: "Chats" }),
+          el("th", { text: "Joined" }),
+          el("th", { text: "" })
+        ])
+      ])
+    ]);
+    var tbody = el("tbody");
+
+    users.forEach(function (u) {
+      var viewBtn = el("button", { type: "button", class: "textbtn", text: "View" });
+      viewBtn.addEventListener("click", function () { viewAccount(u.id); });
+
+      tbody.appendChild(el("tr", {}, [
+        el("td", { "data-label": "Email", text: u.email }),
+        el("td", { "data-label": "Verified", text: u.email_verified_at ? "Yes" : "No" }),
+        el("td", { "data-label": "Rate Limit", class: "num", text: String(u.rate_limit) }),
+        el("td", { "data-label": "Used", class: "num", text: u.rate_count + " / " + u.rate_limit }),
+        el("td", { "data-label": "Chats", class: "num", text: String(u.conversation_count) }),
+        el("td", { "data-label": "Joined", text: fmtDate(u.created_at) }),
+        el("td", {}, [viewBtn])
+      ]));
+    });
+
+    table.appendChild(tbody);
+    view.appendChild(table);
+  }
+
+  async function viewAccount(id) {
+    view.innerHTML = "";
+    view.appendChild(el("p", { class: "empty", text: "Loading…" }));
+    try {
+      var user = await api("../api/admin_users.php?id=" + encodeURIComponent(id));
+      renderAccountDetail(user);
+    } catch (err) {
+      view.innerHTML = "";
+      view.appendChild(el("p", { class: "error", text: err.message }));
+    }
+  }
+
+  function renderAccountDetail(user) {
+    view.innerHTML = "";
+
+    var backBtn = el("button", { type: "button", class: "textbtn", text: "← All Accounts" });
+    backBtn.addEventListener("click", loadAccounts);
+    view.appendChild(backBtn);
+
+    view.appendChild(el("h2", { text: user.email, style: "margin-top:16px" }));
+    view.appendChild(el("p", { class: "meta", text: (user.email_verified_at ? "Verified" : "Not verified") + " · Joined " + fmtDate(user.created_at) }));
+
+    var rateForm = el("form", { class: "inline-form" });
+    var rateField = el("div", { class: "field" }, [
+      el("label", { for: "rateLimitInput", text: "Rate Limit (messages/hour)" }),
+      (function () {
+        var input = el("input", { type: "number", id: "rateLimitInput", min: "0", max: "1000" });
+        input.value = user.rate_limit;
+        return input;
+      })()
+    ]);
+    var saveBtn = el("button", { type: "submit", text: "Save" });
+    var rateMsg = el("span", { class: "meta" });
+    rateForm.appendChild(rateField);
+    rateForm.appendChild(saveBtn);
+    rateForm.appendChild(rateMsg);
+
+    rateForm.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      var input = document.getElementById("rateLimitInput");
+      saveBtn.disabled = true;
+      rateMsg.textContent = "";
+      try {
+        await api("../api/admin_users.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: user.id, rateLimit: parseInt(input.value, 10) })
+        });
+        rateMsg.textContent = "Saved.";
+      } catch (err) {
+        rateMsg.textContent = err.message;
+        rateMsg.classList.add("error");
+      } finally {
+        saveBtn.disabled = false;
+      }
+    });
+
+    view.appendChild(rateForm);
+    view.appendChild(el("p", { class: "meta", text: "Used " + user.rate_count + " this window · window started " + fmtDate(user.rate_window_start) }));
+
+    var deleteBtn = el("button", { type: "button", class: "textbtn", text: "Delete Account", style: "margin-top:12px;color:#e5484d" });
+    deleteBtn.addEventListener("click", async function () {
+      if (!window.confirm("Permanently delete " + user.email + " and all " + user.conversations.length + " saved chat(s)? This cannot be undone.")) return;
+      deleteBtn.disabled = true;
+      try {
+        await api("../api/admin_users.php?id=" + encodeURIComponent(user.id), { method: "DELETE" });
+        loadAccounts();
+      } catch (err) {
+        deleteBtn.disabled = false;
+        view.appendChild(el("p", { class: "error", text: err.message }));
+      }
+    });
+    view.appendChild(deleteBtn);
+
+    view.appendChild(el("h2", { text: "Saved Chats", style: "margin-top:28px" }));
+
+    if (!user.conversations.length) {
+      view.appendChild(el("p", { class: "empty", text: "No saved chats." }));
+      return;
+    }
+
+    var table = el("table", {}, [
+      el("thead", {}, [el("tr", {}, [el("th", { text: "Title" }), el("th", { text: "Updated" }), el("th", { text: "" })])])
+    ]);
+    var tbody = el("tbody");
+    user.conversations.forEach(function (c) {
+      var openBtn = el("button", { type: "button", class: "textbtn", text: "View" });
+      var row = el("tr", {}, [
+        el("td", { "data-label": "Title", text: c.title }),
+        el("td", { "data-label": "Updated", text: fmtDate(c.updated_at) }),
+        el("td", {}, [openBtn])
+      ]);
+      openBtn.addEventListener("click", async function () {
+        try {
+          var convo = await api("../api/admin_conversation.php?id=" + encodeURIComponent(c.id));
+          renderConversationView(convo, function () { renderAccountDetail(user); });
+        } catch (err) {
+          view.appendChild(el("p", { class: "error", text: err.message }));
+        }
+      });
+      tbody.appendChild(row);
+    });
+    table.appendChild(tbody);
+    view.appendChild(table);
+  }
+
+  function renderConversationView(convo, onBack) {
+    view.innerHTML = "";
+    var backBtn = el("button", { type: "button", class: "textbtn", text: "← Back" });
+    backBtn.addEventListener("click", onBack);
+    view.appendChild(backBtn);
+    view.appendChild(el("h2", { text: convo.title || "Untitled chat", style: "margin-top:16px" }));
+    view.appendChild(el("p", { class: "meta", text: "Updated " + fmtDate(convo.updated_at) }));
+    view.appendChild(renderTranscript(convo.messages));
+  }
+
+  // ---- Anonymous chats tab ----
+
+  async function loadAnonChats() {
+    view.innerHTML = "";
+    view.appendChild(el("p", { class: "empty", text: "Loading…" }));
+    try {
+      var chats = await api("../api/admin_anon_chats.php");
+      renderAnonList(chats);
+    } catch (err) {
+      view.innerHTML = "";
+      view.appendChild(el("p", { class: "error", text: err.message }));
+    }
+  }
+
+  function renderAnonList(chats) {
+    view.innerHTML = "";
+    if (!chats.length) {
+      view.appendChild(el("p", { class: "empty", text: "No anonymous chats yet." }));
+      return;
+    }
+
+    var table = el("table", {}, [
+      el("thead", {}, [el("tr", {}, [el("th", { text: "Title" }), el("th", { text: "Updated" }), el("th", { text: "" })])])
+    ]);
+    var tbody = el("tbody");
+    chats.forEach(function (c) {
+      var openBtn = el("button", { type: "button", class: "textbtn", text: "View" });
+      openBtn.addEventListener("click", async function () {
+        try {
+          var convo = await api("../api/admin_anon_chats.php?id=" + encodeURIComponent(c.id));
+          renderConversationView(convo, loadAnonChats);
+        } catch (err) {
+          view.appendChild(el("p", { class: "error", text: err.message }));
+        }
+      });
+      tbody.appendChild(el("tr", {}, [
+        el("td", { "data-label": "Title", text: c.title }),
+        el("td", { "data-label": "Updated", text: fmtDate(c.updated_at) }),
+        el("td", {}, [openBtn])
+      ]));
+    });
+    table.appendChild(tbody);
+    view.appendChild(table);
+  }
+
+  (async function init() {
+    var isAdmin = await refreshMe();
+    if (isAdmin) {
+      await showApp();
+    } else {
+      showGate();
+    }
+  })();
+})();
+</script>
+
+</body>
+</html>

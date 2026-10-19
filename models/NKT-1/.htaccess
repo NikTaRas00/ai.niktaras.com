@@ -1,0 +1,9 @@
+<FilesMatch "^\.env">
+    Require all denied
+</FilesMatch>
+
+<FilesMatch "^(config\.php|SYSTEM_PROMPT\.txt|helpers\.php|db\.php|auth_helpers\.php|schema\.sql|migrate_001_admin\.sql)$">
+    Require all denied
+</FilesMatch>
+
+Options -Indexes

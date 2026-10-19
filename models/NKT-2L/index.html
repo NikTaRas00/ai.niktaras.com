@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta property="og:title" content="NikTaRas AI">
+<meta property="og:description" content="A chat interface powered by NikTaRas AI">
+<meta property="og:image" content="https://ai.niktaras.com/models/NKT-2L/og-image.JPG">
+<meta property="og:url" content="https://ai.niktaras.com/models/NKT-2L/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NikTaRas AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #14161c;
+    --ink-soft: #4a4f5c;
+    --paper: #e8e4dc;
+    --paper-warm: #f2efe9;
+    --rule: #c9c3b8;
+    --mark: #2f5d50;
+    --alert: #8c3b2e;
+    --serif: "Newsreader", Georgia, serif;
+    --mono: "IBM Plex Mono", ui-monospace, monospace;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: 17px;
+    line-height: 1.55;
+    font-optical-sizing: auto;
+    display: flex;
+    justify-content: center;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .frame {
+    width: 100%;
+    max-width: 720px;
+    height: 100dvh;
+    position: relative;
+    background: var(--paper-warm);
+    border-left: 1px solid var(--rule);
+    border-right: 1px solid var(--rule);
+    overflow: hidden;
+  }
+
+  header {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    z-index: 2;
+    padding: 20px 24px 14px;
+    background: rgba(242, 239, 233, 0.72);
+    background: color-mix(in srgb, var(--paper-warm) 72%, transparent);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  h1 { margin: 0; font-size: 20px; font-weight: 500; letter-spacing: -0.01em; }
+
+  .meta {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+
+  #transcript {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    overflow-y: auto;
+    padding: 8px 24px 24px;
+    scroll-behavior: smooth;
+  }
+
+  .turn {
+    display: grid;
+    grid-template-columns: 68px 1fr;
+    gap: 16px;
+    padding: 18px 0;
+    border-bottom: 1px solid rgba(201, 195, 184, 0.5);
+    border-bottom: 1px solid color-mix(in srgb, var(--rule) 50%, transparent);
+    animation: rise 0.28s ease-out;
+  }
+
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: none; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .turn { animation: none; }
+    #transcript { scroll-behavior: auto; }
+    .waiting span { animation: none; opacity: 0.6; }
+  }
+
+  .who {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    padding-top: 5px;
+  }
+
+  .turn[data-role="model"] .who { color: var(--mark); }
+  .turn[data-role="error"] .who { color: var(--alert); }
+  .turn[data-role="error"] .body { color: var(--alert); }
+
+  .body { white-space: pre-wrap; overflow-wrap: anywhere; }
+  .turn[data-role="model"] .body { white-space: normal; }
+
+  .body h1, .body h2, .body h3 {
+    margin: 0.6em 0 0.3em;
+    font-weight: 500;
+    line-height: 1.3;
+  }
+  .body h1:first-child, .body h2:first-child, .body h3:first-child { margin-top: 0; }
+  .body h1 { font-size: 1.25em; }
+  .body h2 { font-size: 1.15em; }
+  .body h3 { font-size: 1.05em; }
+
+  .body p { margin: 0 0 0.7em; }
+  .body p:last-child { margin-bottom: 0; }
+
+  .body ul, .body ol { margin: 0 0 0.7em; padding-left: 1.3em; }
+  .body ul:last-child, .body ol:last-child { margin-bottom: 0; }
+  .body li { margin: 0.15em 0; }
+
+  .body strong { font-weight: 600; }
+  .body em { font-style: italic; }
+
+  .body code {
+    font-family: var(--mono);
+    font-size: 0.88em;
+    background: rgba(47, 93, 80, 0.09);
+    background: color-mix(in srgb, var(--mark) 9%, transparent);
+    padding: 0.1em 0.35em;
+    border-radius: 3px;
+  }
+
+  .body pre {
+    font-family: var(--mono);
+    font-size: 0.82em;
+    line-height: 1.5;
+    background: rgba(20, 22, 28, 0.05);
+    background: color-mix(in srgb, var(--ink) 5%, transparent);
+    padding: 10px 12px;
+    border-radius: 4px;
+    overflow-x: auto;
+    margin: 0 0 0.7em;
+  }
+  .body pre code { background: none; padding: 0; }
+
+  .body a { color: var(--mark); }
+
+  .sources {
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(201, 195, 184, 0.5);
+    border-top: 1px solid color-mix(in srgb, var(--rule) 50%, transparent);
+  }
+  .sources-toggle {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    background: none;
+    border: none;
+    border-bottom: 1px solid var(--rule);
+    color: var(--ink-soft);
+    padding: 2px 0;
+    cursor: pointer;
+  }
+  .sources-toggle:hover { color: var(--ink); border-color: var(--ink); }
+  .sources-toggle:active { opacity: 0.6; }
+
+  .sources-collapse {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 220ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .sources-collapse.open { grid-template-rows: 1fr; }
+  .sources-collapse > .sources-list {
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  .sources-list {
+    margin: 8px 0 0;
+    padding-left: 16px;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-soft);
+  }
+  .sources-list li { margin: 2px 0; }
+  .sources-list a { color: var(--mark); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sources-collapse { transition: none; }
+  }
+
+  .empty { padding: 48px 0; color: var(--ink-soft); font-style: italic; }
+
+  .waiting span {
+    display: inline-block;
+    width: 5px; height: 5px;
+    margin-right: 4px;
+    border-radius: 50%;
+    background: var(--ink-soft);
+    animation: pulse 1.2s infinite ease-in-out;
+  }
+  .waiting span:nth-child(2) { animation-delay: 0.15s; }
+  .waiting span:nth-child(3) { animation-delay: 0.3s; }
+
+  @keyframes pulse {
+    0%, 60%, 100% { opacity: 0.25; }
+    30% { opacity: 1; }
+  }
+
+  #composer {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    z-index: 2;
+    padding: 14px 24px calc(14px + env(safe-area-inset-bottom));
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
+    background: rgba(242, 239, 233, 0.72);
+    background: color-mix(in srgb, var(--paper-warm) 72%, transparent);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-top: 1px solid rgba(255, 255, 255, 0.5);
+  }
+
+  @media (prefers-reduced-transparency: reduce) {
+    header, #composer {
+      background: var(--paper-warm);
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+    }
+  }
+
+  textarea {
+    flex: 1;
+    resize: none;
+    border: none;
+    background: none;
+    font-family: var(--serif);
+    font-size: 17px;
+    line-height: 1.5;
+    color: var(--ink);
+    max-height: 160px;
+    padding: 6px 0;
+  }
+  textarea:focus { outline: none; }
+  textarea::placeholder { color: var(--ink-soft); opacity: 0.7; }
+
+  button[type="submit"] {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: var(--ink);
+    color: var(--paper-warm);
+    border: none;
+    padding: 10px 18px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: opacity 0.15s, transform 100ms ease-out;
+  }
+  button[type="submit"]:hover:not(:disabled) { opacity: 0.85; }
+  button[type="submit"]:active:not(:disabled) { transform: scale(0.96); transition: transform 90ms ease-out; }
+  button[type="submit"]:disabled { opacity: 0.3; cursor: default; }
+
+  #webToggle {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    background: none;
+    border: 1px solid var(--rule);
+    color: var(--ink-soft);
+    padding: 9px 12px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 150ms cubic-bezier(0.2, 0.8, 0.2, 1),
+                color 150ms cubic-bezier(0.2, 0.8, 0.2, 1),
+                border-color 150ms cubic-bezier(0.2, 0.8, 0.2, 1),
+                transform 100ms ease-out;
+  }
+  #webToggle:hover { border-color: var(--ink); color: var(--ink); }
+  #webToggle:active { transform: scale(0.96); }
+  #webToggle[aria-pressed="true"] {
+    background: var(--mark);
+    border-color: var(--mark);
+    color: var(--paper-warm);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    button[type="submit"]:active:not(:disabled),
+    #webToggle:active { transform: none; }
+  }
+
+  :focus-visible { outline: 2px solid var(--mark); outline-offset: 2px; }
+
+  @media (max-width: 560px) {
+    body { font-size: 16px; }
+    header, #transcript, #composer { padding-left: 16px; padding-right: 16px; }
+    .turn { grid-template-columns: 1fr; gap: 6px; }
+    .who { padding-top: 0; }
+  }
+
+  header { flex-wrap: wrap; row-gap: 8px; }
+
+  .textbtn {
+    position: relative;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    background: none;
+    border: none;
+    border-bottom: 1px solid var(--rule);
+    color: var(--ink-soft);
+    padding: 2px 0;
+    cursor: pointer;
+    transition: color 120ms ease-out, border-color 120ms ease-out, opacity 90ms ease-out;
+  }
+  .textbtn:hover { color: var(--ink); border-color: var(--ink); }
+  .textbtn:active { opacity: 0.6; }
+  .textbtn::after {
+    content: "";
+    position: absolute;
+    top: -16px; bottom: -16px; left: -12px; right: -12px;
+  }
+
+  .overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(20, 22, 28, 0.35);
+    background: color-mix(in srgb, var(--ink) 35%, transparent);
+  }
+  .overlay[hidden] { display: none; }
+
+  .card {
+    width: 100%;
+    max-width: 360px;
+    max-height: 100%;
+    overflow-y: auto;
+    background: var(--paper-warm);
+    border: 1px solid var(--rule);
+    padding: 24px;
+    position: relative;
+  }
+
+  .card h2 { margin: 0 0 18px; font-size: 18px; font-weight: 500; }
+
+  .card .textbtn.close {
+    position: absolute;
+    top: 18px; right: 20px;
+  }
+  .card .textbtn.close::after { top: -14px; bottom: -14px; }
+
+  .field { margin-bottom: 14px; }
+  .field label {
+    display: block;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 4px;
+  }
+  .field input {
+    width: 100%;
+    font-family: var(--serif);
+    font-size: 16px;
+    color: var(--ink);
+    background: none;
+    border: none;
+    border-bottom: 1px solid var(--rule);
+    padding: 6px 0;
+  }
+  .field input:focus { outline: none; border-color: var(--ink); }
+
+  .card-actions { display: flex; align-items: center; gap: 16px; margin-top: 18px; }
+  .card-actions button[type="submit"] { min-height: 38px; padding: 8px 16px; }
+
+  .card-msg { margin: 12px 0 0; font-size: 14px; }
+  .card-msg[data-tone="error"] { color: var(--alert); }
+  .card-msg[data-tone="ok"] { color: var(--mark); }
+
+  .convo-list { list-style: none; margin: 0; padding: 0; }
+  .convo-item {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--rule) 50%, transparent);
+  }
+  .convo-item .convo-open {
+    flex: 1;
+    text-align: left;
+    background: none;
+    border: none;
+    font-family: var(--serif);
+    font-size: 15px;
+    color: var(--ink);
+    cursor: pointer;
+    padding: 4px 0;
+    overflow-wrap: anywhere;
+  }
+  .convo-item .convo-open:hover { color: var(--mark); }
+  .convo-empty { color: var(--ink-soft); font-style: italic; font-size: 14px; }
+</style>
+</head>
+<body>
+
+<div class="frame">
+  <header>
+    <h1>NKT-2L</h1>
+    <div style="display:flex;align-items:baseline;gap:14px;flex-wrap:wrap">
+      <a class="textbtn" href="../../" style="text-decoration:none">Models</a>
+      <span class="meta">NikTaRas AI</span>
+      <div id="accountArea" style="display:flex;align-items:baseline;gap:14px"></div>
+      <button type="button" class="textbtn" id="newChat">New Chat</button>
+    </div>
+  </header>
+
+  <div id="transcript" role="log" aria-live="polite">
+    <p class="empty">Ask something to begin.</p>
+  </div>
+
+  <form id="composer">
+    <button type="button" id="webToggle" aria-pressed="false" title="Let NKT-2L search the live web for this message, when it decides it needs to">Web Access</button>
+    <textarea id="input" rows="1" placeholder="Type a message…" aria-label="Message" autocomplete="off"></textarea>
+    <button type="submit" id="send">Send</button>
+  </form>
+
+  <div class="overlay" id="authOverlay" hidden>
+    <div class="card">
+      <button type="button" class="textbtn close" id="authClose" aria-label="Close">Close</button>
+      <h2 id="authTitle">Log In</h2>
+      <form id="authForm">
+        <div class="field">
+          <label for="authEmail">Email</label>
+          <input type="email" id="authEmail" autocomplete="email" required>
+        </div>
+        <div class="field">
+          <label for="authPassword">Password</label>
+          <input type="password" id="authPassword" autocomplete="current-password" required minlength="8">
+        </div>
+        <div class="card-actions">
+          <button type="submit" id="authSubmit">Log In</button>
+          <button type="button" class="textbtn" id="authSwitch">Need an account? Sign up</button>
+        </div>
+      </form>
+      <p class="card-msg" id="authMsg" hidden></p>
+    </div>
+  </div>
+
+  <div class="overlay" id="savedOverlay" hidden>
+    <div class="card">
+      <button type="button" class="textbtn close" id="savedClose" aria-label="Close">Close</button>
+      <h2>Saved Chats</h2>
+      <ul class="convo-list" id="convoList"></ul>
+    </div>
+  </div>
+
+  <div class="overlay" id="codeOverlay" hidden>
+    <div class="card">
+      <button type="button" class="textbtn close" id="codeClose" aria-label="Close">Close</button>
+      <h2>Access Code</h2>
+      <p class="card-msg" id="codeExplain"></p>
+      <form id="codeForm">
+        <div class="field">
+          <label for="codeInput">Code</label>
+          <input type="password" id="codeInput" autocomplete="off" required>
+        </div>
+        <div class="card-actions">
+          <button type="submit" id="codeSubmit">Continue</button>
+        </div>
+      </form>
+      <p class="card-msg" id="codeMsg" hidden></p>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var ENDPOINT = "api/chat.php";
+
+  // Change this to give the assistant a personality or a job.
+  var SYSTEM_PROMPT = "";
+
+  var headerEl = document.querySelector("header");
+  var transcript = document.getElementById("transcript");
+  var form = document.getElementById("composer");
+  var input = document.getElementById("input");
+  var sendBtn = document.getElementById("send");
+  var newChatBtn = document.getElementById("newChat");
+  var webToggle = document.getElementById("webToggle");
+  var accountArea = document.getElementById("accountArea");
+
+  var authOverlay = document.getElementById("authOverlay");
+  var authTitle = document.getElementById("authTitle");
+  var authForm = document.getElementById("authForm");
+  var authEmail = document.getElementById("authEmail");
+  var authPassword = document.getElementById("authPassword");
+  var authSubmit = document.getElementById("authSubmit");
+  var authSwitch = document.getElementById("authSwitch");
+  var authMsg = document.getElementById("authMsg");
+  var authClose = document.getElementById("authClose");
+
+  var savedOverlay = document.getElementById("savedOverlay");
+  var savedClose = document.getElementById("savedClose");
+  var convoList = document.getElementById("convoList");
+
+  var codeOverlay = document.getElementById("codeOverlay");
+  var codeClose = document.getElementById("codeClose");
+  var codeExplain = document.getElementById("codeExplain");
+  var codeForm = document.getElementById("codeForm");
+  var codeInput = document.getElementById("codeInput");
+  var codeSubmit = document.getElementById("codeSubmit");
+  var codeMsg = document.getElementById("codeMsg");
+
+  var history = [];
+  var busy = false;
+  var webAccess = false;
+
+  // Accounts are optional: chat works fully signed out. When logged in,
+  // conversationId ties the running chat to a saved row so replies keep
+  // appending to the same conversation instead of creating a new one.
+  var csrfToken = "";
+  var loggedIn = false;
+  var userEmail = null;
+  var conversationId = null;
+  var authMode = "login";
+
+  // Set while the access-code modal (rate limit reached) is open, so the
+  // code form knows which in-flight message/turn to retry.
+  var pendingSend = null;
+
+  // Header and composer float over the transcript (translucent, blurred);
+  // keep the scrollable area's padding matched to their live heights so
+  // content never starts out hidden behind them.
+  function syncInsets() {
+    transcript.style.paddingTop = (headerEl.offsetHeight + 8) + "px";
+    transcript.style.paddingBottom = (form.offsetHeight + 8) + "px";
+  }
+
+  if (window.ResizeObserver) {
+    var insetObserver = new ResizeObserver(syncInsets);
+    insetObserver.observe(headerEl);
+    insetObserver.observe(form);
+  } else {
+    window.addEventListener("resize", syncInsets);
+  }
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(syncInsets);
+  }
+  syncInsets();
+
+  function labelFor(role) {
+    if (role === "user") return "You";
+    if (role === "model") return "NKT-2L";
+    return "Error";
+  }
+
+  function addTurn(role, text) {
+    var placeholder = transcript.querySelector(".empty");
+    if (placeholder) placeholder.remove();
+
+    var turn = document.createElement("div");
+    turn.className = "turn";
+    turn.setAttribute("data-role", role);
+
+    var who = document.createElement("div");
+    who.className = "who";
+    who.textContent = labelFor(role);
+
+    var body = document.createElement("div");
+    body.className = "body";
+    body.textContent = text;
+
+    turn.appendChild(who);
+    turn.appendChild(body);
+    transcript.appendChild(turn);
+    transcript.scrollTop = transcript.scrollHeight;
+
+    return body;
+  }
+
+  function renderSources(sources) {
+    var wrap = document.createElement("div");
+    wrap.className = "sources";
+
+    var toggle = document.createElement("button");
+    toggle.type = "button";
+    toggle.className = "sources-toggle";
+    toggle.setAttribute("aria-expanded", "false");
+    toggle.textContent = "Show sources (" + sources.length + ")";
+
+    var collapse = document.createElement("div");
+    collapse.className = "sources-collapse";
+
+    var list = document.createElement("ol");
+    list.className = "sources-list";
+    sources.forEach(function (s) {
+      var li = document.createElement("li");
+      var a = document.createElement("a");
+      a.href = s.uri;
+      a.target = "_blank";
+      a.rel = "noopener noreferrer";
+      a.textContent = s.title || s.uri;
+      li.appendChild(a);
+      list.appendChild(li);
+    });
+    collapse.appendChild(list);
+
+    toggle.addEventListener("click", function () {
+      var willShow = !collapse.classList.contains("open");
+      collapse.classList.toggle("open", willShow);
+      toggle.setAttribute("aria-expanded", willShow ? "true" : "false");
+      toggle.textContent = willShow ? "Hide sources" : "Show sources (" + sources.length + ")";
+    });
+
+    wrap.appendChild(toggle);
+    wrap.appendChild(collapse);
+
+    return wrap;
+  }
+
+  function escapeHtml(str) {
+    return str.replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
+  // Minimal, safe markdown renderer: escapes HTML first, then converts
+  // a small subset of markdown to a fixed set of whitelisted tags.
+  function renderMarkdown(text) {
+    var escaped = escapeHtml(text);
+
+    var codeBlocks = [];
+    escaped = escaped.replace(/```[^\n]*\n?([\s\S]*?)```/g, function (_, code) {
+      codeBlocks.push(code.replace(/\n$/, ""));
+      return " CODEBLOCK" + (codeBlocks.length - 1) + " ";
+    });
+
+    escaped = escaped.replace(/`([^`\n]+)`/g, "<code>$1</code>");
+    escaped = escaped.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+    escaped = escaped.replace(/__([^_]+)__/g, "<strong>$1</strong>");
+    escaped = escaped.replace(/\*([^*\n]+)\*/g, "<em>$1</em>");
+    escaped = escaped.replace(/(^|[^\w])_([^_\n]+)_(?!\w)/g, "$1<em>$2</em>");
+    escaped = escaped.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
+      '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+    escaped = escaped.replace(/^### (.+)$/gm, "<h3>$1</h3>");
+    escaped = escaped.replace(/^## (.+)$/gm, "<h2>$1</h2>");
+    escaped = escaped.replace(/^# (.+)$/gm, "<h1>$1</h1>");
+
+    var blocks = escaped.split(/\n{2,}/);
+    var html = blocks.map(function (block) {
+      var trimmed = block.trim();
+
+      var codeMatch = trimmed.match(/^ CODEBLOCK(\d+) $/);
+      if (codeMatch) {
+        return "<pre><code>" + codeBlocks[parseInt(codeMatch[1], 10)] + "</code></pre>";
+      }
+
+      if (/^<h[1-3]>/.test(trimmed)) {
+        return trimmed;
+      }
+
+      var lines = block.split("\n").filter(function (l) { return l.trim() !== ""; });
+      var isUl = lines.length > 0 && lines.every(function (l) { return /^\s*[-*]\s+/.test(l); });
+      var isOl = lines.length > 0 && lines.every(function (l) { return /^\s*\d+\.\s+/.test(l); });
+
+      if (isUl) {
+        return "<ul>" + lines.map(function (l) {
+          return "<li>" + l.replace(/^\s*[-*]\s+/, "") + "</li>";
+        }).join("") + "</ul>";
+      }
+      if (isOl) {
+        return "<ol>" + lines.map(function (l) {
+          return "<li>" + l.replace(/^\s*\d+\.\s+/, "") + "</li>";
+        }).join("") + "</ol>";
+      }
+
+      return "<p>" + block.replace(/\n/g, "<br>") + "</p>";
+    }).join("");
+
+    html = html.replace(/ CODEBLOCK(\d+) /g, function (_, i) {
+      return "<pre><code>" + codeBlocks[parseInt(i, 10)] + "</code></pre>";
+    });
+
+    return html;
+  }
+
+  function showWaiting() {
+    var body = addTurn("model", "");
+    body.innerHTML = '<span class="waiting"><span></span><span></span><span></span></span>';
+    return body;
+  }
+
+  function setBusy(state) {
+    busy = state;
+    sendBtn.disabled = state;
+    sendBtn.textContent = state ? "…" : "Send";
+  }
+
+  function autoGrow() {
+    input.style.height = "auto";
+    input.style.height = Math.min(input.scrollHeight, 160) + "px";
+  }
+
+  function renderAccountUI() {
+    accountArea.innerHTML = "";
+
+    if (loggedIn) {
+      var email = document.createElement("span");
+      email.className = "meta";
+      email.textContent = userEmail;
+      accountArea.appendChild(email);
+
+      var savedBtn = document.createElement("button");
+      savedBtn.type = "button";
+      savedBtn.className = "textbtn";
+      savedBtn.textContent = "Saved";
+      savedBtn.addEventListener("click", openSaved);
+      accountArea.appendChild(savedBtn);
+
+      var logoutBtn = document.createElement("button");
+      logoutBtn.type = "button";
+      logoutBtn.className = "textbtn";
+      logoutBtn.textContent = "Log Out";
+      logoutBtn.addEventListener("click", logout);
+      accountArea.appendChild(logoutBtn);
+    } else {
+      var loginBtn = document.createElement("button");
+      loginBtn.type = "button";
+      loginBtn.className = "textbtn";
+      loginBtn.textContent = "Log In";
+      loginBtn.addEventListener("click", function () { openAuth("login"); });
+      accountArea.appendChild(loginBtn);
+
+      var signupBtn = document.createElement("button");
+      signupBtn.type = "button";
+      signupBtn.className = "textbtn";
+      signupBtn.textContent = "Sign Up";
+      signupBtn.addEventListener("click", function () { openAuth("register"); });
+      accountArea.appendChild(signupBtn);
+    }
+
+    syncInsets();
+  }
+
+  async function refreshSession() {
+    try {
+      var response = await fetch("api/me.php", { credentials: "same-origin" });
+      var data = await response.json();
+      csrfToken = data.csrfToken || "";
+      loggedIn = !!data.loggedIn;
+      userEmail = data.email || null;
+    } catch (err) {
+      // Accounts are optional -- if the backend/DB isn't configured yet,
+      // the chat itself must keep working signed out.
+      loggedIn = false;
+      userEmail = null;
+    }
+    renderAccountUI();
+  }
+
+  function showAuthMsg(text, tone) {
+    authMsg.textContent = text;
+    authMsg.dataset.tone = tone || "";
+    authMsg.hidden = !text;
+  }
+
+  function openAuth(mode) {
+    authMode = mode;
+    authTitle.textContent = mode === "login" ? "Log In" : "Sign Up";
+    authSubmit.textContent = mode === "login" ? "Log In" : "Sign Up";
+    authSwitch.textContent = mode === "login" ? "Need an account? Sign up" : "Have an account? Log in";
+    authPassword.autocomplete = mode === "login" ? "current-password" : "new-password";
+    showAuthMsg("");
+    authForm.hidden = false;
+    authOverlay.hidden = false;
+    authEmail.focus();
+  }
+
+  function closeAuth() {
+    authOverlay.hidden = true;
+    authForm.reset();
+    showAuthMsg("");
+  }
+
+  authClose.addEventListener("click", closeAuth);
+  authSwitch.addEventListener("click", function () {
+    openAuth(authMode === "login" ? "register" : "login");
+  });
+
+  authForm.addEventListener("submit", async function (e) {
+    e.preventDefault();
+    var endpoint = authMode === "login" ? "api/login.php" : "api/register.php";
+    var email = authEmail.value.trim();
+    var password = authPassword.value;
+
+    authSubmit.disabled = true;
+    showAuthMsg("");
+
+    try {
+      var response = await fetch(endpoint, {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken },
+        body: JSON.stringify({ email: email, password: password })
+      });
+      var data = await response.json();
+
+      if (!response.ok) {
+        showAuthMsg(data.error || "Something went wrong.", "error");
+        return;
+      }
+
+      if (authMode === "login") {
+        loggedIn = true;
+        userEmail = data.email;
+        renderAccountUI();
+        closeAuth();
+      } else {
+        authForm.hidden = true;
+        showAuthMsg(data.message, "ok");
+      }
+    } catch (err) {
+      showAuthMsg("Could not reach the server. Please try again.", "error");
+    } finally {
+      authSubmit.disabled = false;
+    }
+  });
+
+  async function logout() {
+    try {
+      await fetch("api/logout.php", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "X-CSRF-Token": csrfToken }
+      });
+    } catch (err) {
+      // Fall through: reset local state either way and let refreshSession
+      // pick up an authoritative csrf token for the (now anonymous) session.
+    }
+    conversationId = null;
+    await refreshSession();
+  }
+
+  function startNewChat() {
+    conversationId = null;
+    history = [];
+    transcript.innerHTML = '<p class="empty">Ask something to begin.</p>';
+  }
+
+  async function saveConversation() {
+    if (!loggedIn) return;
+    try {
+      var response = await fetch("api/conversations.php", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken },
+        body: JSON.stringify({ id: conversationId, messages: history })
+      });
+
+      if (response.status === 404) {
+        // The saved row was deleted elsewhere; start a fresh one next time.
+        conversationId = null;
+        response = await fetch("api/conversations.php", {
+          method: "POST",
+          credentials: "same-origin",
+          headers: { "Content-Type": "application/json", "X-CSRF-Token": csrfToken },
+          body: JSON.stringify({ id: null, messages: history })
+        });
+      }
+
+      var data = await response.json();
+      if (response.ok && data.id) {
+        conversationId = data.id;
+      }
+    } catch (err) {
+      // Saving is best-effort and must never interrupt the chat itself.
+    }
+  }
+
+  function renderTranscriptFrom(messages) {
+    transcript.innerHTML = "";
+    messages.forEach(function (m) {
+      if (m.role === "model") {
+        var body = addTurn("model", "");
+        body.innerHTML = renderMarkdown(m.text);
+      } else {
+        addTurn("user", m.text);
+      }
+    });
+    if (messages.length === 0) {
+      transcript.innerHTML = '<p class="empty">Ask something to begin.</p>';
+    }
+  }
+
+  async function loadConversation(id) {
+    try {
+      var response = await fetch("api/conversations.php?id=" + encodeURIComponent(id), { credentials: "same-origin" });
+      var data = await response.json();
+      if (!response.ok) return;
+
+      conversationId = data.id;
+      history = data.messages || [];
+      renderTranscriptFrom(history);
+      closeSaved();
+    } catch (err) {
+      // Leave the current chat untouched on failure.
+    }
+  }
+
+  function renderConvoList(items) {
+    convoList.innerHTML = "";
+
+    if (!items.length) {
+      var empty = document.createElement("li");
+      empty.className = "convo-empty";
+      empty.textContent = "No saved chats yet.";
+      convoList.appendChild(empty);
+      return;
+    }
+
+    items.forEach(function (item) {
+      var li = document.createElement("li");
+      li.className = "convo-item";
+
+      var openBtn = document.createElement("button");
+      openBtn.type = "button";
+      openBtn.className = "convo-open";
+      openBtn.textContent = item.title || "Untitled chat";
+      openBtn.addEventListener("click", function () { loadConversation(item.id); });
+
+      var delBtn = document.createElement("button");
+      delBtn.type = "button";
+      delBtn.className = "textbtn";
+      delBtn.textContent = "Delete";
+      var armed = false;
+      var armTimer = null;
+      delBtn.addEventListener("click", async function () {
+        if (!armed) {
+          armed = true;
+          delBtn.textContent = "Confirm?";
+          armTimer = setTimeout(function () { armed = false; delBtn.textContent = "Delete"; }, 3000);
+          return;
+        }
+        clearTimeout(armTimer);
+        try {
+          await fetch("api/conversations.php?id=" + encodeURIComponent(item.id), {
+            method: "DELETE",
+            credentials: "same-origin",
+            headers: { "X-CSRF-Token": csrfToken }
+          });
+        } catch (err) {
+          // Ignore -- the list refresh below reflects actual server state.
+        }
+        if (conversationId === item.id) conversationId = null;
+        openSaved();
+      });
+
+      li.appendChild(openBtn);
+      li.appendChild(delBtn);
+      convoList.appendChild(li);
+    });
+  }
+
+  async function openSaved() {
+    savedOverlay.hidden = false;
+    convoList.innerHTML = '<li class="convo-empty">Loading…</li>';
+    try {
+      var response = await fetch("api/conversations.php", { credentials: "same-origin" });
+      var data = await response.json();
+      renderConvoList(response.ok && Array.isArray(data) ? data : []);
+    } catch (err) {
+      renderConvoList([]);
+    }
+  }
+
+  function closeSaved() {
+    savedOverlay.hidden = true;
+  }
+
+  savedClose.addEventListener("click", closeSaved);
+
+  function markSlotError(slot, message) {
+    slot.textContent = message;
+    slot.parentElement.setAttribute("data-role", "error");
+    slot.parentElement.querySelector(".who").textContent = "Error";
+  }
+
+  function finishSend() {
+    setBusy(false);
+    transcript.scrollTop = transcript.scrollHeight;
+    input.focus();
+  }
+
+  function openCodeModal(message) {
+    codeExplain.textContent = message;
+    codeMsg.hidden = true;
+    codeInput.value = "";
+    codeOverlay.hidden = false;
+    codeInput.focus();
+  }
+
+  function closeCodeModal() {
+    codeOverlay.hidden = true;
+    codeForm.reset();
+  }
+
+  codeClose.addEventListener("click", function () {
+    // Cancelling means the message never actually went through.
+    if (pendingSend) {
+      markSlotError(pendingSend.slot, "Access code required to send another message this hour.");
+      history.pop();
+      finishSend();
+      pendingSend = null;
+    }
+    closeCodeModal();
+  });
+
+  codeForm.addEventListener("submit", async function (e) {
+    e.preventDefault();
+    if (!pendingSend) return;
+    var code = codeInput.value;
+    codeSubmit.disabled = true;
+    await attemptSend(pendingSend.slot, code);
+    codeSubmit.disabled = false;
+  });
+
+  async function attemptSend(slot, code) {
+    try {
+      var response = await fetch(ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: history, system: SYSTEM_PROMPT, webAccess: webAccess, unlockCode: code || "" })
+      });
+
+      var data = await response.json();
+
+      if (response.status === 429 && data.needsCode) {
+        if (pendingSend) {
+          // A code was already tried and rejected -- keep the modal open.
+          codeMsg.textContent = data.error || "Incorrect code.";
+          codeMsg.dataset.tone = "error";
+          codeMsg.hidden = false;
+          codeInput.value = "";
+          codeInput.focus();
+        } else {
+          slot.textContent = "Waiting for an access code…";
+          pendingSend = { slot: slot };
+          openCodeModal(data.error || "You've reached the hourly limit. Enter your access code to continue.");
+        }
+        return;
+      }
+
+      if (!response.ok) {
+        throw new Error(data.error || "Request failed.");
+      }
+
+      slot.innerHTML = renderMarkdown(data.reply);
+      if (Array.isArray(data.sources) && data.sources.length) {
+        slot.appendChild(renderSources(data.sources));
+      }
+      history.push({ role: "model", text: data.reply });
+      saveConversation();
+      pendingSend = null;
+      closeCodeModal();
+      finishSend();
+
+    } catch (err) {
+      markSlotError(slot, err.message);
+      history.pop();
+      pendingSend = null;
+      closeCodeModal();
+      finishSend();
+    }
+  }
+
+  async function send(text) {
+    history.push({ role: "user", text: text });
+    addTurn("user", text);
+
+    var slot = showWaiting();
+    setBusy(true);
+    await attemptSend(slot, null);
+  }
+
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var text = input.value.trim();
+    if (!text || busy) return;
+
+    input.value = "";
+    autoGrow();
+    send(text);
+  });
+
+  input.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && !e.shiftKey && window.matchMedia("(pointer: fine)").matches) {
+      e.preventDefault();
+      form.requestSubmit();
+    }
+  });
+
+  input.addEventListener("input", autoGrow);
+
+  // Starting a new chat discards the visible conversation with no undo for
+  // signed-out users (nothing is saved), so require a second click within a
+  // short window rather than wiping it on one accidental tap.
+  var newChatArmed = false;
+  var newChatArmTimer = null;
+
+  newChatBtn.addEventListener("click", function () {
+    if (history.length === 0) return;
+
+    if (!newChatArmed) {
+      newChatArmed = true;
+      newChatBtn.textContent = "Confirm?";
+      newChatArmTimer = setTimeout(function () {
+        newChatArmed = false;
+        newChatBtn.textContent = "New Chat";
+      }, 3000);
+      return;
+    }
+
+    clearTimeout(newChatArmTimer);
+    newChatArmed = false;
+    newChatBtn.textContent = "New Chat";
+    startNewChat();
+    input.focus();
+  });
+
+  webToggle.addEventListener("click", function () {
+    webAccess = !webAccess;
+    webToggle.setAttribute("aria-pressed", webAccess ? "true" : "false");
+  });
+
+  input.focus();
+  refreshSession();
+})();
+</script>
+
+</body>
+</html>

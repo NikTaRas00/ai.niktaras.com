@@ -12,7 +12,7 @@ Models today:
 
 ## Architecture
 
-- **Root `index.html`**: the picker. Models are entries in the `MODELS` array in its inline script; each becomes a card whose button navigates to the entry's `url`. Adding a model means adding an entry here and a new `models/<name>/` folder.
+- **Root `index.html`**: the picker. Models are entries in the `MODELS` array in its inline script; each becomes a card whose button navigates to the entry's `url`. Adding a model means adding an entry here and a new `models/<name>/` folder. An entry may set `statusUrl` (an endpoint returning `{"online": bool}`) to show a live Available/Offline sign; NKT-2L uses `models/NKT-2L/api/status.php`, which pings LM Studio's `/v1/models` through the Funnel (5s timeout) and returns only the boolean.
 - **Each `models/<name>/` is a full copy of the same app**, not shared code: `index.html` (whole frontend: markup, CSS, JS, hand-rolled markdown renderer), `api/` (PHP endpoints), `.htaccess`, own `api/.env`, own `SYSTEM_PROMPT.txt`. Changes to shared behaviour (auth, rate limiting, UI) must be applied to each model's copy by hand; they have already started to diverge in `chat.php`, `config.php`, `SYSTEM_PROMPT.txt` and `.env.example`.
 - **Backend flow** (`api/chat.php`): receives `{messages, webAccess, unlockCode}` → rate limit check → one model call → optional Tavily web search via function calling (second model call) → JSON `{reply, sources}`. Anonymous chats are logged to `anonymous_chats`; logged-in users' chats are saved by the frontend calling `api/conversations.php`.
   - NKT-1 calls Gemini `generateContent`.
@@ -48,7 +48,7 @@ Models today:
 
 - Confirm Tailscale is set to start at Windows login so the Funnel survives reboots.
 - OPEN (agreed to do later): stream NKT-2L replies (currently the page waits for the full answer). Needs `"stream": true` against LM Studio, SSE forwarding from `chat.php` (cURL write callback, output buffering off), a `fetch` + `getReader()` frontend, and on-the-fly `<think>` filtering. Watch out for the Tavily tool-call flow, rate limiting/logging around a stream, Apache/FastCGI buffering on the shared host, and error messages that must not leak the model name.
-- Optional: delete leftover files in the server root (old `api/`, `og-image.JPG`, `.htaccess.bak`) after confirming nothing depends on them. The server-root `admin/` is now the live panel, so keep it. Old per-model `admin/` folders on the server (`models/*/admin/`) and `models/*/api/admin_*.php` are orphaned by the push (git push doesn't delete files on a plain-copy deploy) and can be removed.
+- The server is a git checkout, so deploying a commit also deletes tracked files the commit removed (the old `models/*/admin/` panels and `admin_*.php` files vanished that way). The old root leftovers (`api/`, `og-image.JPG`, `.htaccess.bak`) were confirmed already gone. The server-root `admin/` is the live panel; keep it.
 - Old `chat` rows have `model = ''` (shown as "Unknown" in the admin); nothing to do unless you want to backfill.
 - Shared logic is duplicated per model; consider whether a third model justifies extracting it.
 

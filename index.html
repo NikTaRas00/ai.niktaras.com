@@ -79,6 +79,30 @@
     cursor: pointer;
     text-decoration: none;
   }
+  .model-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .model p a { color: inherit; text-underline-offset: 2px; }
+  .model p a:hover { color: var(--ink); }
+  .status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-soft);
+  }
+  .status::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--rule);
+  }
+  .status[data-state="online"] { color: var(--mark); }
+  .status[data-state="online"]::before { background: var(--mark); }
+  .status[data-state="offline"] { color: #8c3b2e; }
+  .status[data-state="offline"]::before { background: #8c3b2e; }
   .pick:hover { background: var(--mark); border-color: var(--mark); }
   .pick[disabled] { background: transparent; color: var(--ink-soft); border-color: var(--rule); cursor: not-allowed; }
   :focus-visible { outline: 2px solid var(--mark); outline-offset: 2px; }
@@ -106,16 +130,36 @@
     {
       id: "NKT-1",
       name: "NKT-1",
-      description: "General-purpose chat with optional live web search and saved chats.",
+      description: "A model developed by NikTaRas AI, currently hosted on Google's servers.",
       url: "/models/NKT-1/index.html"
     },
     {
       id: "NKT-2L",
       name: "NKT-2L",
-      description: "Qwen3 14B running locally on a private PC. Available when the host machine is online.",
-      url: "/models/NKT-2L/index.html"
+      // "{email}" becomes a mailto link.
+      description: "Our next-gen model, running exclusively on our own servers. As our servers can't be on 24/7, please contact us at {email} to ask us to switch them on when you need them.",
+      email: "info@web.niktaras.com",
+      url: "/models/NKT-2L/index.html",
+      // Optional: endpoint returning {"online": bool}; shows a live status sign.
+      statusUrl: "/models/NKT-2L/api/status.php"
     }
   ];
+
+  var STATUS_LABELS = { checking: "Checking…", online: "Available", offline: "Offline" };
+
+  function checkStatus(url, badge) {
+    var controller = new AbortController();
+    var timer = setTimeout(function () { controller.abort(); }, 10000);
+    fetch(url, { cache: "no-store", signal: controller.signal })
+      .then(function (r) { return r.json(); })
+      .then(function (data) { return data && data.online === true ? "online" : "offline"; })
+      .catch(function () { return "offline"; })
+      .then(function (state) {
+        clearTimeout(timer);
+        badge.dataset.state = state;
+        badge.textContent = STATUS_LABELS[state];
+      });
+  }
 
   var list = document.getElementById("models");
   MODELS.forEach(function (m) {
@@ -123,11 +167,33 @@
     li.className = "model";
 
     var text = document.createElement("div");
+    var head = document.createElement("div");
+    head.className = "model-head";
     var h3 = document.createElement("h3");
     h3.textContent = m.name;
+    head.appendChild(h3);
+
+    if (m.statusUrl) {
+      var badge = document.createElement("span");
+      badge.className = "status";
+      badge.dataset.state = "checking";
+      badge.textContent = STATUS_LABELS.checking;
+      badge.setAttribute("role", "status");
+      head.appendChild(badge);
+      checkStatus(m.statusUrl, badge);
+    }
+
     var p = document.createElement("p");
-    p.textContent = m.description;
-    text.appendChild(h3);
+    var parts = m.description.split("{email}");
+    p.appendChild(document.createTextNode(parts[0]));
+    if (parts.length > 1 && m.email) {
+      var mail = document.createElement("a");
+      mail.href = "mailto:" + m.email;
+      mail.textContent = m.email;
+      p.appendChild(mail);
+      p.appendChild(document.createTextNode(parts.slice(1).join("{email}")));
+    }
+    text.appendChild(head);
     text.appendChild(p);
 
     var btn = document.createElement("button");

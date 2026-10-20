@@ -31,6 +31,14 @@ function niktaras_env(string $name, array $dotenv): string
 }
 
 $dotenv = niktaras_load_dotenv(__DIR__ . '/.env');
+// Settings shared by every model (DB_*, SMTP_*, MAIL_FROM, UNLOCK_CODE,
+// ADMIN_CODE) live in admin/api/.env. This model's own .env
+// wins; the shared file only fills keys that are missing or blank here.
+foreach (niktaras_load_dotenv(__DIR__ . '/../../../admin/api/.env') as $sharedKey => $sharedValue) {
+    if (trim((string)($dotenv[$sharedKey] ?? '')) === '') {
+        $dotenv[$sharedKey] = $sharedValue;
+    }
+}
 
 return [
     // The PC-hosted model, reached through a Cloudflare Tunnel.

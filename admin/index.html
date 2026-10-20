@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>NKT-2L Admin</title>
+<title>Admin</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -33,7 +33,7 @@
     min-height: 100vh;
   }
 
-  .wrap { max-width: 900px; margin: 0 auto; padding: 32px 24px 64px; }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 32px 24px 64px; }
 
   h1 { margin: 0; font-size: 22px; font-weight: 500; }
   h2 { margin: 0 0 4px; font-size: 18px; font-weight: 500; }
@@ -63,6 +63,7 @@
   }
   .textbtn:hover { color: var(--ink); border-color: var(--ink); }
   .textbtn:active { opacity: 0.6; }
+  .textbtn.danger { color: var(--alert); }
 
   button[type="submit"], .btn {
     font-family: var(--mono);
@@ -72,14 +73,14 @@
     background: var(--ink);
     color: var(--paper-warm);
     border: none;
-    padding: 10px 18px;
-    min-height: 40px;
+    padding: 8px 16px;
+    min-height: 36px;
     cursor: pointer;
   }
   button[type="submit"]:hover, .btn:hover { opacity: 0.85; }
   button:disabled { opacity: 0.4; cursor: default; }
 
-  .tabs { display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 1px solid var(--rule); }
+  .tabs { display: flex; gap: 16px; margin-bottom: 20px; border-bottom: 1px solid var(--rule); }
   .tab {
     font-family: var(--mono);
     font-size: 12px;
@@ -96,13 +97,15 @@
   .tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--mark); }
 
   table { width: 100%; border-collapse: collapse; font-size: 14px; }
-  th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid color-mix(in srgb, var(--rule) 60%, transparent); vertical-align: top; }
+  th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid color-mix(in srgb, var(--rule) 60%, transparent); vertical-align: middle; }
   th { font-family: var(--mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); font-weight: 500; }
   tr:last-child td { border-bottom: none; }
-  .num { font-family: var(--mono); font-size: 13px; }
+  .num { font-family: var(--mono); font-size: 13px; white-space: nowrap; }
+  .dim { color: var(--ink-soft); }
 
   .empty { color: var(--ink-soft); font-style: italic; padding: 24px 0; }
   .error { color: var(--alert); }
+  .ok { color: var(--mark); }
 
   .field { margin: 14px 0; }
   .field label {
@@ -114,7 +117,7 @@
     color: var(--ink-soft);
     margin-bottom: 4px;
   }
-  .field input {
+  input[type="number"], input[type="password"], select {
     font-family: var(--serif);
     font-size: 16px;
     color: var(--ink);
@@ -123,14 +126,21 @@
     border-bottom: 1px solid var(--rule);
     padding: 6px 0;
     width: 100%;
-    max-width: 240px;
+    border-radius: 0;
   }
-  .field input:focus { outline: none; border-color: var(--ink); }
-  .inline-form { display: flex; align-items: flex-end; gap: 12px; }
+  input:focus, select:focus { outline: none; border-color: var(--ink); }
+  .limit-input { width: 88px; font-family: var(--mono); font-size: 14px; }
+  .field input { max-width: 240px; }
+  .inline-form { display: flex; align-items: flex-end; gap: 12px; flex-wrap: wrap; }
+  .inline-form .field { margin: 0; }
+  .row-actions { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .filter { max-width: 200px; }
 
   .gate { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 24px; }
   .gate-card { width: 100%; max-width: 340px; }
   .gate-card .field input { max-width: none; }
+
+  .section { margin-top: 28px; }
 
   .transcript { border: 1px solid var(--rule); background: var(--paper-warm); padding: 4px 16px; margin-top: 12px; }
   .turn { display: grid; grid-template-columns: 68px 1fr; gap: 16px; padding: 14px 0; border-bottom: 1px solid color-mix(in srgb, var(--rule) 50%, transparent); }
@@ -141,12 +151,14 @@
 
   [hidden] { display: none !important; }
 
-  @media (max-width: 600px) {
+  @media (max-width: 700px) {
+    .wrap { padding: 24px 16px 48px; }
     table, thead, tbody, th, td, tr { display: block; }
     thead { display: none; }
     tr { border-bottom: 1px solid var(--rule); padding: 10px 0; }
     td { border: none; padding: 4px 0; }
     td::before { content: attr(data-label) ": "; font-family: var(--mono); font-size: 10px; text-transform: uppercase; color: var(--ink-soft); }
+    td[data-label=""]::before { content: ""; }
   }
 </style>
 </head>
@@ -154,7 +166,7 @@
 
 <div class="gate" id="gate">
   <div class="gate-card">
-    <h1 style="margin-bottom:18px">NKT-2L Admin</h1>
+    <h1 style="margin-bottom:18px">Admin</h1>
     <form id="gateForm">
       <div class="field">
         <label for="gateCode">Access Code</label>
@@ -168,7 +180,7 @@
 
 <div class="wrap" id="app" hidden>
   <div class="topbar">
-    <h1>NKT-2L Admin</h1>
+    <h1>Admin</h1>
     <button type="button" class="textbtn" id="logoutBtn">Log Out</button>
   </div>
 
@@ -197,7 +209,8 @@
   var view = document.getElementById("view");
 
   var csrfToken = "";
-  var currentTab = "accounts";
+  var models = [];
+  var anonFilter = "";
 
   function el(tag, props, children) {
     var node = document.createElement(tag);
@@ -212,12 +225,23 @@
     return node;
   }
 
-  // Shown as-is (server time, whatever timezone MySQL is configured with) --
-  // not converted to the viewer's local time, since we don't know the DB's
-  // actual timezone and a wrong guess would be worse than an unconverted
-  // timestamp.
+  // Shown as-is (server time) -- not converted to the viewer's timezone, since
+  // we don't know the DB's actual timezone and a wrong guess is worse.
   function fmtDate(s) {
     return s || "—";
+  }
+
+  function modelLabel(m) {
+    return m || "Unknown";
+  }
+
+  function clear() {
+    view.innerHTML = "";
+  }
+
+  function showError(err) {
+    clear();
+    view.appendChild(el("p", { class: "error", text: err.message }));
   }
 
   async function api(url, options) {
@@ -228,23 +252,40 @@
       options.headers["X-CSRF-Token"] = csrfToken;
     }
     var response = await fetch(url, options);
-    var data = await response.json();
+    var data;
+    try {
+      data = await response.json();
+    } catch (e) {
+      throw new Error("Unexpected response from the server.");
+    }
     if (!response.ok) {
+      if (response.status === 401 && url.indexOf("api/login.php") === -1) {
+        showGate();
+      }
       throw new Error(data.error || "Request failed.");
     }
     return data;
   }
 
+  function postJson(url, body) {
+    return api(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    });
+  }
+
   async function refreshMe() {
-    var data = await fetch("../api/admin_me.php", { credentials: "same-origin" }).then(function (r) { return r.json(); });
+    var data = await fetch("api/me.php", { credentials: "same-origin" }).then(function (r) { return r.json(); });
     csrfToken = data.csrfToken || "";
+    models = data.models || [];
     return !!data.isAdmin;
   }
 
   async function showApp() {
     gate.hidden = true;
     app.hidden = false;
-    await loadAccounts();
+    setTab("accounts");
   }
 
   function showGate() {
@@ -259,11 +300,7 @@
     gateError.hidden = true;
     gateSubmit.disabled = true;
     try {
-      await api("../api/admin_login.php", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code: gateCode.value })
-      });
+      await postJson("api/login.php", { code: gateCode.value });
       await refreshMe();
       await showApp();
     } catch (err) {
@@ -276,7 +313,7 @@
 
   logoutBtn.addEventListener("click", async function () {
     try {
-      await api("../api/admin_logout.php", { method: "POST" });
+      await api("api/logout.php", { method: "POST" });
     } catch (err) {
       // Fall through -- show the gate regardless.
     }
@@ -285,7 +322,6 @@
   });
 
   function setTab(tab) {
-    currentTab = tab;
     tabAccounts.setAttribute("aria-selected", String(tab === "accounts"));
     tabAnon.setAttribute("aria-selected", String(tab === "anon"));
     if (tab === "accounts") loadAccounts();
@@ -294,12 +330,12 @@
   tabAccounts.addEventListener("click", function () { setTab("accounts"); });
   tabAnon.addEventListener("click", function () { setTab("anon"); });
 
-  function renderTranscript(messages) {
+  function renderTranscript(messages, model) {
     var wrap = el("div", { class: "transcript" });
     (messages || []).forEach(function (m) {
       var role = m.role === "model" ? "model" : "user";
       wrap.appendChild(el("div", { class: "turn", "data-role": role }, [
-        el("div", { class: "who", text: role === "model" ? "NKT-2L" : "User" }),
+        el("div", { class: "who", text: role === "model" ? (model || "Model") : "User" }),
         el("div", { class: "body", text: m.text || "" })
       ]));
     });
@@ -309,75 +345,82 @@
     return wrap;
   }
 
+  function renderConversationView(convo, onBack) {
+    clear();
+    var backBtn = el("button", { type: "button", class: "textbtn", text: "← Back" });
+    backBtn.addEventListener("click", onBack);
+    view.appendChild(backBtn);
+    view.appendChild(el("h2", { text: convo.title || "Untitled chat", style: "margin-top:16px" }));
+    view.appendChild(el("p", { class: "meta", text: modelLabel(convo.model) + " · Updated " + fmtDate(convo.updated_at) + (convo.email ? " · " + convo.email : "") }));
+    view.appendChild(renderTranscript(convo.messages, convo.model));
+  }
+
   // ---- Accounts tab ----
 
   async function loadAccounts() {
-    view.innerHTML = "";
+    clear();
     view.appendChild(el("p", { class: "empty", text: "Loading…" }));
     try {
-      var users = await api("../api/admin_users.php");
-      renderAccountsList(users);
+      renderAccountsList(await api("api/users.php"));
     } catch (err) {
-      view.innerHTML = "";
-      view.appendChild(el("p", { class: "error", text: err.message }));
+      showError(err);
     }
   }
 
+  function usageText(l) {
+    return l.used + " / " + l.limit;
+  }
+
   function renderAccountsList(users) {
-    view.innerHTML = "";
+    clear();
     if (!users.length) {
       view.appendChild(el("p", { class: "empty", text: "No accounts yet." }));
       return;
     }
 
-    var table = el("table", {}, [
-      el("thead", {}, [
-        el("tr", {}, [
-          el("th", { text: "Email" }),
-          el("th", { text: "Verified" }),
-          el("th", { text: "Rate Limit" }),
-          el("th", { text: "Used" }),
-          el("th", { text: "Chats" }),
-          el("th", { text: "Joined" }),
-          el("th", { text: "" })
-        ])
-      ])
-    ]);
+    var headRow = el("tr", {}, [el("th", { text: "Email" }), el("th", { text: "Verified" })]);
+    models.forEach(function (m) { headRow.appendChild(el("th", { text: m + " Used/Limit" })); });
+    headRow.appendChild(el("th", { text: "Chats" }));
+    headRow.appendChild(el("th", { text: "Joined" }));
+    headRow.appendChild(el("th", { text: "" }));
+
+    var table = el("table", {}, [el("thead", {}, [headRow])]);
     var tbody = el("tbody");
 
     users.forEach(function (u) {
       var viewBtn = el("button", { type: "button", class: "textbtn", text: "View" });
       viewBtn.addEventListener("click", function () { viewAccount(u.id); });
 
-      tbody.appendChild(el("tr", {}, [
+      var row = el("tr", {}, [
         el("td", { "data-label": "Email", text: u.email }),
-        el("td", { "data-label": "Verified", text: u.email_verified_at ? "Yes" : "No" }),
-        el("td", { "data-label": "Rate Limit", class: "num", text: String(u.rate_limit) }),
-        el("td", { "data-label": "Used", class: "num", text: u.rate_count + " / " + u.rate_limit }),
-        el("td", { "data-label": "Chats", class: "num", text: String(u.conversation_count) }),
-        el("td", { "data-label": "Joined", text: fmtDate(u.created_at) }),
-        el("td", {}, [viewBtn])
-      ]));
+        el("td", { "data-label": "Verified", text: u.email_verified_at ? "Yes" : "No" })
+      ]);
+      u.limits.forEach(function (l) {
+        row.appendChild(el("td", { "data-label": l.model, class: "num", text: usageText(l) + (l.override === null ? "" : " *") }));
+      });
+      row.appendChild(el("td", { "data-label": "Chats", class: "num", text: String(u.conversation_count) }));
+      row.appendChild(el("td", { "data-label": "Joined", text: fmtDate(u.created_at) }));
+      row.appendChild(el("td", { "data-label": "" }, [viewBtn]));
+      tbody.appendChild(row);
     });
 
     table.appendChild(tbody);
     view.appendChild(table);
+    view.appendChild(el("p", { class: "meta", style: "margin-top:12px", text: "* = custom limit for that model; otherwise the account's default applies" }));
   }
 
   async function viewAccount(id) {
-    view.innerHTML = "";
+    clear();
     view.appendChild(el("p", { class: "empty", text: "Loading…" }));
     try {
-      var user = await api("../api/admin_users.php?id=" + encodeURIComponent(id));
-      renderAccountDetail(user);
+      renderAccountDetail(await api("api/users.php?id=" + encodeURIComponent(id)));
     } catch (err) {
-      view.innerHTML = "";
-      view.appendChild(el("p", { class: "error", text: err.message }));
+      showError(err);
     }
   }
 
   function renderAccountDetail(user) {
-    view.innerHTML = "";
+    clear();
 
     var backBtn = el("button", { type: "button", class: "textbtn", text: "← All Accounts" });
     backBtn.addEventListener("click", loadAccounts);
@@ -386,50 +429,110 @@
     view.appendChild(el("h2", { text: user.email, style: "margin-top:16px" }));
     view.appendChild(el("p", { class: "meta", text: (user.email_verified_at ? "Verified" : "Not verified") + " · Joined " + fmtDate(user.created_at) }));
 
-    var rateForm = el("form", { class: "inline-form" });
-    var rateField = el("div", { class: "field" }, [
-      el("label", { for: "rateLimitInput", text: "Rate Limit (messages/hour)" }),
-      (function () {
-        var input = el("input", { type: "number", id: "rateLimitInput", min: "0", max: "1000" });
-        input.value = user.rate_limit;
-        return input;
-      })()
-    ]);
-    var saveBtn = el("button", { type: "submit", text: "Save" });
-    var rateMsg = el("span", { class: "meta" });
-    rateForm.appendChild(rateField);
-    rateForm.appendChild(saveBtn);
-    rateForm.appendChild(rateMsg);
-
-    rateForm.addEventListener("submit", async function (e) {
+    // Default limit
+    var defForm = el("form", { class: "inline-form", style: "margin-top:16px" });
+    var defInput = el("input", { type: "number", id: "defaultLimitInput", min: "0", max: "1000", step: "1", required: "required" });
+    defInput.value = user.default_limit;
+    var defSave = el("button", { type: "submit", text: "Save" });
+    var defMsg = el("span", { class: "meta" });
+    defForm.appendChild(el("div", { class: "field" }, [
+      el("label", { for: "defaultLimitInput", text: "Default limit (messages/hour, for models without a custom limit)" }),
+      defInput
+    ]));
+    defForm.appendChild(defSave);
+    defForm.appendChild(defMsg);
+    defForm.addEventListener("submit", async function (e) {
       e.preventDefault();
-      var input = document.getElementById("rateLimitInput");
-      saveBtn.disabled = true;
-      rateMsg.textContent = "";
+      defSave.disabled = true;
+      defMsg.className = "meta";
+      defMsg.textContent = "";
       try {
-        await api("../api/admin_users.php", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id: user.id, rateLimit: parseInt(input.value, 10) })
-        });
-        rateMsg.textContent = "Saved.";
+        await postJson("api/users.php", { id: user.id, defaultLimit: parseInt(defInput.value, 10) });
+        defMsg.textContent = "Saved.";
+        defMsg.classList.add("ok");
+        // Refresh so the per-model rows below show the new effective limit.
+        renderAccountDetail(await api("api/users.php?id=" + encodeURIComponent(user.id)));
       } catch (err) {
-        rateMsg.textContent = err.message;
-        rateMsg.classList.add("error");
-      } finally {
-        saveBtn.disabled = false;
+        defMsg.textContent = err.message;
+        defMsg.classList.add("error");
+        defSave.disabled = false;
       }
     });
+    view.appendChild(defForm);
 
-    view.appendChild(rateForm);
-    view.appendChild(el("p", { class: "meta", text: "Used " + user.rate_count + " this window · window started " + fmtDate(user.rate_window_start) }));
+    // Per-model limits
+    view.appendChild(el("h2", { text: "Limits per model", class: "section" }));
+    view.appendChild(el("p", { class: "meta", text: "Leave a limit blank to use the default. 0 blocks the model for this account (the unlock code still works)." }));
 
-    var deleteBtn = el("button", { type: "button", class: "textbtn", text: "Delete Account", style: "margin-top:12px;color:#e5484d" });
+    var limitsTable = el("table", {}, [
+      el("thead", {}, [el("tr", {}, [
+        el("th", { text: "Model" }),
+        el("th", { text: "Limit" }),
+        el("th", { text: "Used (this hour)" }),
+        el("th", { text: "" })
+      ])])
+    ]);
+    var limitsBody = el("tbody");
+
+    user.limits.forEach(function (l) {
+      var input = el("input", { type: "number", class: "limit-input", min: "0", max: "1000", step: "1", placeholder: String(user.default_limit), "aria-label": l.model + " limit" });
+      if (l.override !== null) input.value = l.override;
+      var saveBtn = el("button", { type: "button", class: "btn", text: "Save" });
+      var resetBtn = el("button", { type: "button", class: "textbtn", text: "Reset usage" });
+      var msg = el("span", { class: "meta" });
+
+      function setMsg(text, cls) {
+        msg.className = "meta" + (cls ? " " + cls : "");
+        msg.textContent = text;
+      }
+
+      saveBtn.addEventListener("click", async function () {
+        var raw = input.value.trim();
+        var value = raw === "" ? null : Number(raw);
+        if (value !== null && (!Number.isInteger(value) || value < 0 || value > 1000)) {
+          setMsg("Enter a whole number from 0 to 1000, or leave blank.", "error");
+          return;
+        }
+        saveBtn.disabled = true;
+        setMsg("");
+        try {
+          await postJson("api/users.php", { id: user.id, model: l.model, rateLimit: value });
+          renderAccountDetail(await api("api/users.php?id=" + encodeURIComponent(user.id)));
+        } catch (err) {
+          setMsg(err.message, "error");
+          saveBtn.disabled = false;
+        }
+      });
+
+      resetBtn.addEventListener("click", async function () {
+        resetBtn.disabled = true;
+        setMsg("");
+        try {
+          await postJson("api/users.php", { id: user.id, model: l.model, resetUsage: true });
+          renderAccountDetail(await api("api/users.php?id=" + encodeURIComponent(user.id)));
+        } catch (err) {
+          setMsg(err.message, "error");
+          resetBtn.disabled = false;
+        }
+      });
+
+      limitsBody.appendChild(el("tr", {}, [
+        el("td", { "data-label": "Model", text: l.model }),
+        el("td", { "data-label": "Limit" }, [input]),
+        el("td", { "data-label": "Used (this hour)", class: "num", text: usageText(l) + (l.override === null ? " (default)" : "") }),
+        el("td", { "data-label": "" }, [el("div", { class: "row-actions" }, [saveBtn, resetBtn, msg])])
+      ]));
+    });
+    limitsTable.appendChild(limitsBody);
+    view.appendChild(limitsTable);
+
+    // Delete
+    var deleteBtn = el("button", { type: "button", class: "textbtn danger", text: "Delete Account", style: "margin-top:20px" });
     deleteBtn.addEventListener("click", async function () {
       if (!window.confirm("Permanently delete " + user.email + " and all " + user.conversations.length + " saved chat(s)? This cannot be undone.")) return;
       deleteBtn.disabled = true;
       try {
-        await api("../api/admin_users.php?id=" + encodeURIComponent(user.id), { method: "DELETE" });
+        await api("api/users.php?id=" + encodeURIComponent(user.id), { method: "DELETE" });
         loadAccounts();
       } catch (err) {
         deleteBtn.disabled = false;
@@ -438,7 +541,8 @@
     });
     view.appendChild(deleteBtn);
 
-    view.appendChild(el("h2", { text: "Saved Chats", style: "margin-top:28px" }));
+    // Saved chats
+    view.appendChild(el("h2", { text: "Saved Chats", class: "section" }));
 
     if (!user.conversations.length) {
       view.appendChild(el("p", { class: "empty", text: "No saved chats." }));
@@ -446,70 +550,69 @@
     }
 
     var table = el("table", {}, [
-      el("thead", {}, [el("tr", {}, [el("th", { text: "Title" }), el("th", { text: "Updated" }), el("th", { text: "" })])])
+      el("thead", {}, [el("tr", {}, [el("th", { text: "Title" }), el("th", { text: "Model" }), el("th", { text: "Updated" }), el("th", { text: "" })])])
     ]);
     var tbody = el("tbody");
     user.conversations.forEach(function (c) {
       var openBtn = el("button", { type: "button", class: "textbtn", text: "View" });
-      var row = el("tr", {}, [
-        el("td", { "data-label": "Title", text: c.title }),
-        el("td", { "data-label": "Updated", text: fmtDate(c.updated_at) }),
-        el("td", {}, [openBtn])
-      ]);
       openBtn.addEventListener("click", async function () {
         try {
-          var convo = await api("../api/admin_conversation.php?id=" + encodeURIComponent(c.id));
-          renderConversationView(convo, function () { renderAccountDetail(user); });
+          var convo = await api("api/conversation.php?id=" + encodeURIComponent(c.id));
+          renderConversationView(convo, function () { viewAccount(user.id); });
         } catch (err) {
           view.appendChild(el("p", { class: "error", text: err.message }));
         }
       });
-      tbody.appendChild(row);
+      tbody.appendChild(el("tr", {}, [
+        el("td", { "data-label": "Title", text: c.title }),
+        el("td", { "data-label": "Model", class: c.model ? "" : "dim", text: modelLabel(c.model) }),
+        el("td", { "data-label": "Updated", text: fmtDate(c.updated_at) }),
+        el("td", { "data-label": "" }, [openBtn])
+      ]));
     });
     table.appendChild(tbody);
     view.appendChild(table);
   }
 
-  function renderConversationView(convo, onBack) {
-    view.innerHTML = "";
-    var backBtn = el("button", { type: "button", class: "textbtn", text: "← Back" });
-    backBtn.addEventListener("click", onBack);
-    view.appendChild(backBtn);
-    view.appendChild(el("h2", { text: convo.title || "Untitled chat", style: "margin-top:16px" }));
-    view.appendChild(el("p", { class: "meta", text: "Updated " + fmtDate(convo.updated_at) }));
-    view.appendChild(renderTranscript(convo.messages));
-  }
-
   // ---- Anonymous chats tab ----
 
   async function loadAnonChats() {
-    view.innerHTML = "";
+    clear();
     view.appendChild(el("p", { class: "empty", text: "Loading…" }));
     try {
-      var chats = await api("../api/admin_anon_chats.php");
-      renderAnonList(chats);
+      var url = "api/anon_chats.php" + (anonFilter ? "?model=" + encodeURIComponent(anonFilter) : "");
+      renderAnonList(await api(url));
     } catch (err) {
-      view.innerHTML = "";
-      view.appendChild(el("p", { class: "error", text: err.message }));
+      showError(err);
     }
   }
 
   function renderAnonList(chats) {
-    view.innerHTML = "";
+    clear();
+
+    var select = el("select", { class: "filter", "aria-label": "Filter by model" }, [el("option", { value: "", text: "All models" })]);
+    models.forEach(function (m) { select.appendChild(el("option", { value: m, text: m })); });
+    select.value = anonFilter;
+    select.addEventListener("change", function () {
+      anonFilter = select.value;
+      loadAnonChats();
+    });
+    view.appendChild(el("div", { class: "field", style: "margin-top:0" }, [select]));
+
     if (!chats.length) {
       view.appendChild(el("p", { class: "empty", text: "No anonymous chats yet." }));
       return;
     }
 
     var table = el("table", {}, [
-      el("thead", {}, [el("tr", {}, [el("th", { text: "Title" }), el("th", { text: "Updated" }), el("th", { text: "" })])])
+      el("thead", {}, [el("tr", {}, [el("th", { text: "Title" }), el("th", { text: "Model" }), el("th", { text: "Updated" }), el("th", { text: "" })])])
     ]);
     var tbody = el("tbody");
     chats.forEach(function (c) {
       var openBtn = el("button", { type: "button", class: "textbtn", text: "View" });
       openBtn.addEventListener("click", async function () {
         try {
-          var convo = await api("../api/admin_anon_chats.php?id=" + encodeURIComponent(c.id));
+          var convo = await api("api/anon_chats.php?id=" + encodeURIComponent(c.id));
           renderConversationView(convo, loadAnonChats);
         } catch (err) {
           view.appendChild(el("p", { class: "error", text: err.message }));
@@ -517,8 +620,9 @@
       });
       tbody.appendChild(el("tr", {}, [
         el("td", { "data-label": "Title", text: c.title }),
+        el("td", { "data-label": "Model", class: c.model ? "" : "dim", text: modelLabel(c.model) }),
         el("td", { "data-label": "Updated", text: fmtDate(c.updated_at) }),
-        el("td", {}, [openBtn])
+        el("td", { "data-label": "" }, [openBtn])
       ]));
     });
     table.appendChild(tbody);
@@ -526,10 +630,13 @@
   }
 
   (async function init() {
-    var isAdmin = await refreshMe();
-    if (isAdmin) {
-      await showApp();
-    } else {
+    try {
+      if (await refreshMe()) {
+        await showApp();
+      } else {
+        showGate();
+      }
+    } catch (err) {
       showGate();
     }
   })();

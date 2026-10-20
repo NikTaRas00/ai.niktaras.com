@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS conversations (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   user_id INT UNSIGNED NOT NULL,
+  model VARCHAR(32) NOT NULL DEFAULT '',
   title VARCHAR(255) NOT NULL DEFAULT 'Untitled chat',
   messages LONGTEXT NOT NULL,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -30,9 +31,23 @@ CREATE TABLE IF NOT EXISTS conversations (
 -- identifier.
 CREATE TABLE IF NOT EXISTS anonymous_chats (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  session_id VARCHAR(191) NOT NULL UNIQUE,
+  session_id VARCHAR(191) NOT NULL,
+  model VARCHAR(32) NOT NULL DEFAULT '',
   title VARCHAR(255) NOT NULL DEFAULT 'Untitled chat',
   messages LONGTEXT NOT NULL,
   created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+  updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  UNIQUE KEY uniq_session_model (session_id, model)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Per-user, per-model rate limit and usage counter (managed from /admin/).
+-- rate_limit NULL = use the user's default (users.rate_limit).
+CREATE TABLE IF NOT EXISTS user_model_limits (
+  user_id INT UNSIGNED NOT NULL,
+  model VARCHAR(32) NOT NULL,
+  rate_limit INT UNSIGNED NULL,
+  rate_count INT UNSIGNED NOT NULL DEFAULT 0,
+  rate_window_start DATETIME NULL,
+  PRIMARY KEY (user_id, model),
+  CONSTRAINT fk_uml_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

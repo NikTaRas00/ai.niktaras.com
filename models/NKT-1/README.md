@@ -12,7 +12,7 @@ A lightweight chat interface for NKT-1, a model developed by the NikTaras AI div
 - Markdown rendering and source citations in the chat UI.
 - Optional user accounts (email + password, email verification required) backed by MySQL. Chat works fully anonymously either way — logging in just adds saved chat history.
 - Rate limit of 5 messages/hour by default. Logged-in accounts get a persistent, admin-adjustable limit; anonymous visitors are limited per browser session. Past the limit, an access code (`UNLOCK_CODE` in `.env`) unlocks exactly one more message at a time.
-- A minimal admin panel at `/admin/` (gated by its own `ADMIN_CODE`) to browse registered accounts, view/edit their rate limit, read their saved chat history, and review anonymous (signed-out) chats.
+- Admin is handled by the site-wide panel at `ai.niktaras.com/admin/` (see the repo root `admin/`), which covers every model: accounts, per-user per-model rate limits, saved chats and anonymous chats.
 
 ## Project structure
 
@@ -33,19 +33,13 @@ A lightweight chat interface for NKT-1, a model developed by the NikTaras AI div
     ├── logout.php            # POST: ends the session
     ├── me.php                # GET: current session state + CSRF token
     ├── conversations.php     # GET/POST/DELETE: saved chat history (requires login)
-    ├── admin_me.php           # GET: admin session state + CSRF token
-    ├── admin_login.php        # POST: enter the admin panel with ADMIN_CODE
-    ├── admin_logout.php       # POST: leaves the admin panel
-    ├── admin_users.php        # GET/POST: list/view accounts, edit rate limits
-    ├── admin_conversation.php # GET: any account's saved chat, in full
-    ├── admin_anon_chats.php   # GET: anonymous chats (list + full)
     ├── schema.sql             # MySQL tables (fresh installs)
     ├── migrate_001_admin.sql  # ALTER/CREATE statements for an existing DB
     ├── .env.example          # Template for required environment variables
     └── SYSTEM_PROMPT.txt     # System prompt sent to Gemini
-admin/
-└── index.html                # Admin panel: accounts, rate limits, anonymous chats
 ```
+
+The admin panel is no longer part of this folder: it lives at the repo root in `admin/` and is shared by all models.
 
 ## Setup
 
@@ -65,13 +59,13 @@ Requires PHP with the `curl`, `mbstring`, and `pdo_mysql` extensions.
 Chat works fully signed out without any of this. To enable accounts and saved chat history:
 
 1. In cPanel, create a MySQL database and a database user (MySQL Databases page), and note the host/name/user/password.
-2. Run `api/schema.sql` against that database (e.g. via phpMyAdmin's SQL tab) to create the tables. If you already ran an older version of `schema.sql` on this database, run `api/migrate_001_admin.sql` instead (adds the columns/table the admin panel needs).
+2. Run `api/schema.sql` against that database (e.g. via phpMyAdmin's SQL tab) to create the tables. If you already ran an older version of `schema.sql` on this database, run `api/migrate_001_admin.sql` and then `admin/api/migrate_002_model_limits.sql` (at the repo root) instead.
 3. Fill in the `DB_HOST`/`DB_NAME`/`DB_USER`/`DB_PASS`, `SITE_URL`, and `MAIL_FROM` keys in `api/.env` (see `api/.env.example`).
 4. Verification emails are sent with PHP's built-in `mail()` — no SMTP setup needed, but deliverability depends on your host's mail configuration and your domain's SPF/DKIM records.
 
 ### Admin panel
 
-Visit `/admin/` and enter your `ADMIN_CODE` (set in `.env`, separate from `UNLOCK_CODE`) to view accounts, edit a user's messages/hour limit, read their saved chats, and browse anonymous chats. It needs the database set up (above) — without it, the panel loads but every tab shows "The database isn't set up on this server yet." Keep `ADMIN_CODE` to yourself — it grants full read access to every account's and every anonymous visitor's chat history.
+Visit `ai.niktaras.com/admin/` and enter your `ADMIN_CODE` (set in `.env`, separate from `UNLOCK_CODE`) to view accounts, set each user's messages/hour limit per model, read their saved chats, and browse anonymous chats. The panel reads `ADMIN_CODE` and the `DB_*` values from `admin/api/.env` if present, otherwise from this model's `api/.env` (then NKT-2L's). It needs the database set up (above). Keep `ADMIN_CODE` to yourself — it grants full read access to every account's and every anonymous visitor's chat history.
 
 ### Deploying to a subdirectory
 

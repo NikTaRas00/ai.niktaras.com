@@ -70,17 +70,3 @@ function require_login(): array
     }
     return $user;
 }
-
-function is_admin(): bool
-{
-    return !empty($_SESSION['is_admin']);
-}
-
-function require_admin(): void
-{
-    if (!is_admin()) {
-        http_response_code(401);
-        echo json_encode(['error' => 'Admin access required.']);
-        exit;
-    }
-}

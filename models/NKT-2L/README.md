@@ -1,6 +1,7 @@
 # NKT-2L
 
-Same chat UI, accounts, rate limits and admin panel as NKT-1, but the model is
+Same chat UI, accounts and rate limits as NKT-1 (admin is the site-wide panel at
+`/admin/`), but the model is
 **Qwen3 14B running in LM Studio on the owner's PC**. The PHP backend
 (`api/chat.php`) proxies to LM Studio's OpenAI-compatible API through a
 Cloudflare Tunnel. When the PC is off, chat returns "NKT-2L is offline".

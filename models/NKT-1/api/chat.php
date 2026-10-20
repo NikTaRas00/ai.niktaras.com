@@ -10,6 +10,8 @@ const MAX_MESSAGES = 40;
 const MAX_CHARS = 4000;
 const SEARCH_RESULT_COUNT = 5;
 const RATE_LIMIT = 5;
+// Must match this model's entry in admin/api/bootstrap.php MODELS.
+const MODEL_KEY = 'NKT-1';
 const RATE_LIMIT_WINDOW = 3600;
 
 function check_unlock_code(array $config, array $payload): array
@@ -154,8 +156,9 @@ if ($apiKey === '') {
 }
 
 // Rate limit: 5 messages/hour by default. Logged-in accounts get a
-// persistent, admin-adjustable limit (users.rate_limit -- see the admin
-// panel); anonymous visitors are limited per browser session instead, since
+// persistent, admin-adjustable limit per model (user_model_limits, falling
+// back to users.rate_limit as the account's default -- see /admin/);
+// anonymous visitors are limited per browser session instead, since
 // there's no stable identity to attach a custom limit to. Once spent, every
 // further message needs a correct UNLOCK_CODE (api/.env) -- one message per
 // correct entry, never resetting the window/count, so it must be re-entered
@@ -170,11 +173,16 @@ $accountLimited = false;
 if ($user !== null) {
     try {
         $pdo = get_pdo();
-        $stmt = $pdo->prepare('SELECT rate_limit, rate_count, rate_window_start FROM users WHERE id = ?');
-        $stmt->execute([$user['id']]);
-        $row = $stmt->fetch();
+        $stmt = $pdo->prepare(
+            'SELECT u.rate_limit AS default_limit, l.rate_limit AS model_limit, l.rate_count, l.rate_window_start
+             FROM users u
+             LEFT JOIN user_model_limits l ON l.user_id = u.id AND l.model = ?
+             WHERE u.id = ?'
+        );
+        $stmt->execute([MODEL_KEY, $user['id']]);
+        $row = $stmt->fetch() ?: [];
 
-        $limit = (int)($row['rate_limit'] ?? RATE_LIMIT);
+        $limit = (int)($row['model_limit'] ?? $row['default_limit'] ?? RATE_LIMIT);
         $count = (int)($row['rate_count'] ?? 0);
         $windowStart = !empty($row['rate_window_start']) ? strtotime($row['rate_window_start']) : false;
 
@@ -190,8 +198,11 @@ if ($user !== null) {
 
         if (!$needsCode) {
             $count++;
-            $update = $pdo->prepare('UPDATE users SET rate_count = ?, rate_window_start = ? WHERE id = ?');
-            $update->execute([$count, date('Y-m-d H:i:s', $windowStart), $user['id']]);
+            $update = $pdo->prepare(
+                'INSERT INTO user_model_limits (user_id, model, rate_count, rate_window_start) VALUES (?, ?, ?, ?)
+                 ON DUPLICATE KEY UPDATE rate_count = VALUES(rate_count), rate_window_start = VALUES(rate_window_start)'
+            );
+            $update->execute([$user['id'], MODEL_KEY, $count, date('Y-m-d H:i:s', $windowStart)]);
         }
 
         $accountLimited = true;
@@ -349,10 +360,10 @@ if ($user === null) {
         }
 
         $stmt = $pdo->prepare(
-            'INSERT INTO anonymous_chats (session_id, title, messages) VALUES (?, ?, ?)
+            'INSERT INTO anonymous_chats (session_id, model, title, messages) VALUES (?, ?, ?, ?)
              ON DUPLICATE KEY UPDATE messages = VALUES(messages), updated_at = NOW()'
         );
-        $stmt->execute([session_id(), $title, json_encode($transcript, JSON_UNESCAPED_UNICODE)]);
+        $stmt->execute([session_id(), MODEL_KEY, $title,json_encode($transcript, JSON_UNESCAPED_UNICODE)]);
     } catch (Throwable $e) {
         error_log('[NKT-1 chat.php] anonymous chat logging failed: ' . $e->getMessage());
     }

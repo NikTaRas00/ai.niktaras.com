@@ -6,6 +6,8 @@ header('Content-Type: application/json; charset=utf-8');
 require_once __DIR__ . '/auth_helpers.php';
 
 const MAX_MESSAGES = 200;
+// Must match this model's entry in admin/api/bootstrap.php MODELS.
+const MODEL_KEY = 'NKT-1';
 
 bootstrap_session();
 $user = require_login();
@@ -73,8 +75,8 @@ if ($method === 'POST') {
         }
     }
 
-    $stmt = $pdo->prepare('INSERT INTO conversations (user_id, title, messages) VALUES (?, ?, ?)');
-    $stmt->execute([$user['id'], $title, $messagesJson]);
+    $stmt = $pdo->prepare('INSERT INTO conversations (user_id, model, title, messages) VALUES (?, ?, ?, ?)');
+    $stmt->execute([$user['id'], MODEL_KEY, $title, $messagesJson]);
     echo json_encode(['id' => (int)$pdo->lastInsertId()]);
     exit;
 }
